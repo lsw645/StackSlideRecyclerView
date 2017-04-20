@@ -1,0 +1,22 @@
+# StackSlideRecyclerView
+
+1.RecyclerView中的Recycler，内部有三个ArrayList进行缓存和废弃ViewHolder
+分别为mAttacherScrap、mChangedScrap、mCachedViews
+2.RecyclerViewPool
+
+查看detachAndScrapAttachedViews(),
+内部对所有的子控件，进行scrap或者再recycle
+在scrapOrRecycleView中，通过getChildViewHolderInt()方法获得Viewholder的对象
+通过判断viewHolder是否无效&&!viewHolder.isRemoved()&&!mRecyclerView.mAdapter.hasStableIds(),
+就进行removed和recyclerViewHolderInternal,
+否则进行detachView和scrapView
+
+因为ChildView是层叠的，所以要获得能看到层叠效果，最下一层的position,即getItemCount(注意使用getItemCount而不是getChildCount)-需要看到的View数量
+然后通过for循环，将View添加进去，View添加进去后，要进行测量与摆放位置，
+测量的方法使用measureChild或者measureChildWithMargin(),
+摆放的方法使用layoutDecorated();(谨记RecyclerView中的布局都要用MatchParent)
+另外要注意页面的小细节，页面只展示了三张图，要把第四张图被第三张图遮盖住
+
+为了实现移动时，进行删除的操作，搭配了ItemTouchHelper，实现他的SimpleCallback,
+把滑动的方向定义好，谨记getMoveFlags不能重写，不然滑动的效果失效，最后在onChildDraw方法中
+对childView进行动画的操作，通过获取View的移动距离，RecyclerView的width一半大小，作为K值即(view距离/width/2)，进行动画移动大小的判定
